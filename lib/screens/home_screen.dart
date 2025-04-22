@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/game_provider.dart';
 import '../providers/theme_provider.dart';
 import 'game_screen.dart';
+import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -28,6 +29,15 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('Sudoku'),
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.person),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+              );
+            },
+          ),
           IconButton(
             icon: Consumer<ThemeProvider>(
               builder: (context, themeProvider, child) {
