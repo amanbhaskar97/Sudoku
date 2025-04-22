@@ -30,15 +30,6 @@ class _HomeScreenState extends State<HomeScreen> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ProfileScreen()),
-              );
-            },
-          ),
-          IconButton(
             icon: Consumer<ThemeProvider>(
               builder: (context, themeProvider, child) {
                 return Icon(
@@ -48,6 +39,15 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             onPressed: () {
               Provider.of<ThemeProvider>(context, listen: false).toggleTheme();
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.person),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+              );
             },
           ),
         ],

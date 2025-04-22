@@ -14,6 +14,8 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen> {
   Timer? _timer;
   int _selectedNumber = 0;
+  int? _selectedRow;
+  int? _selectedCol;
 
   @override
   void initState() {
@@ -59,10 +61,12 @@ class _GameScreenState extends State<GameScreen> {
           IconButton(
             icon: Icon(
               themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+              color: themeProvider.isDarkMode ? Colors.amber : Colors.blue,
             ),
             onPressed: () {
               themeProvider.toggleTheme();
             },
+            tooltip: themeProvider.isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode',
           ),
           Consumer<GameProvider>(
             builder: (context, gameProvider, child) => IconButton(
@@ -201,13 +205,16 @@ class _GameScreenState extends State<GameScreen> {
               return GestureDetector(
                 onTap: () {
                   if (!isFixed && !gameProvider.isGameOver) {
-                    if (_selectedNumber == 0) {
-                      // Clear the cell and its notes
-                      gameProvider.makeMove(row, col, 0);
-                      gameProvider.clearNotes(row, col);
-                    } else {
-                      gameProvider.makeMove(row, col, _selectedNumber);
-                    }
+                    setState(() {
+                      if (_selectedRow == row && _selectedCol == col) {
+                        // Deselect if same cell is tapped again
+                        _selectedRow = null;
+                        _selectedCol = null;
+                      } else {
+                        _selectedRow = row;
+                        _selectedCol = col;
+                      }
+                    });
                   }
                 },
                 child: Container(
@@ -222,7 +229,11 @@ class _GameScreenState extends State<GameScreen> {
                         width: (row + 1) % 3 == 0 ? 2.0 : 1.0,
                       ),
                     ),
-                    color: isFixed ? Colors.grey[200] : null,
+                    color: isFixed 
+                      ? Colors.grey[200] 
+                      : (_selectedRow == row && _selectedCol == col 
+                          ? Colors.blue.withOpacity(0.2) 
+                          : null),
                   ),
                   child: cellValue != 0
                       ? Center(
@@ -292,44 +303,27 @@ class _GameScreenState extends State<GameScreen> {
         onPressed: () {
           if (gameProvider.isGameOver) return;
           
-          setState(() {
-            _selectedNumber = number;
-          });
-          
-          // For clear button (number 0)
-          if (number == 0) {
-            // Find the selected cell
-            final selectedCell = context.findRenderObject() as RenderBox?;
-            if (selectedCell != null) {
-              final position = selectedCell.localToGlobal(Offset.zero);
-              final size = selectedCell.size;
-              
-              // Find the cell that was tapped
-              final cell = context.findRenderObject() as RenderBox?;
-              if (cell != null) {
-                final cellPosition = cell.localToGlobal(Offset.zero);
-                final cellSize = cell.size;
-                
-                // Calculate row and col based on position
-                final row = ((cellPosition.dy - position.dy) / cellSize.height).round();
-                final col = ((cellPosition.dx - position.dx) / cellSize.width).round();
-                
-                if (row >= 0 && row < 9 && col >= 0 && col < 9) {
-                  // Clear the cell
-                  gameProvider.makeMove(row, col, 0);
-                  // Clear any notes
-                  gameProvider.clearNotes(row, col);
-                }
+          // Only allow number selection if a cell is already selected
+          if (_selectedRow != null && _selectedCol != null) {
+            setState(() {
+              if (number == 0) {
+                // Clear the cell and its notes
+                gameProvider.makeMove(_selectedRow!, _selectedCol!, 0);
+                gameProvider.clearNotes(_selectedRow!, _selectedCol!);
+              } else {
+                gameProvider.makeMove(_selectedRow!, _selectedCol!, number);
               }
-            }
+              // Don't deselect the cell after use
+            });
           }
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: _selectedNumber == number ? Colors.blue : null,
-          foregroundColor: _selectedNumber == number ? Colors.white : null,
+          backgroundColor: null,
+          foregroundColor: null,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
           ),
+          elevation: 1,
         ),
         child: Text(
           label,
