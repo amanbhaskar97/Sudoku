@@ -14,7 +14,6 @@ class GameProvider extends ChangeNotifier {
   bool _isGameOver = false;
   Map<String, int> _highScores = {'Easy': 9999, 'Medium': 9999, 'Hard': 9999};
   int _maxRecursionDepth = 0;
-  bool _isLoading = false;
 
   List<List<int>> get board => _board;
   List<List<bool>> get fixedCells => _fixedCells;
@@ -24,7 +23,6 @@ class GameProvider extends ChangeNotifier {
   int get errorCount => _errorCount;
   bool get isGameOver => _isGameOver;
   Map<String, int> get highScores => _highScores;
-  bool get isLoading => _isLoading;
 
   GameProvider({required SharedPreferences prefs}) : _prefs = prefs {
     _loadHighScores();
@@ -122,43 +120,20 @@ class GameProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> startNewGame() async {
-    _isLoading = true;
-    notifyListeners();
-    
+  void generateNewPuzzle() {
     try {
-      await generateNewPuzzle();
-    } catch (e) {
-      debugPrint('Error generating puzzle: $e');
-      _board = List.generate(9, (_) => List<int>.filled(9, 0));
-      _solution = List.generate(9, (_) => List<int>.filled(9, 0));
-      _fixedCells = List.generate(9, (_) => List<bool>.filled(9, false));
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> generateNewPuzzle() async {
-    _isLoading = true;
-    notifyListeners();
-    
-    try {
-      await Future.microtask(() {
-        _generateValidSolution();
-        _createPuzzle();
-      });
+      _generateValidSolution();
+      _createPuzzle();
       _timeElapsed = 0;
       _isGameComplete = false;
       _errorCount = 0;
       _isGameOver = false;
+      notifyListeners();
     } catch (e) {
       debugPrint('Error generating puzzle: $e');
       _board = List.generate(9, (_) => List<int>.filled(9, 0));
       _fixedCells = List.generate(9, (_) => List<bool>.filled(9, false));
       _solution = List.generate(9, (_) => List<int>.filled(9, 0));
-    } finally {
-      _isLoading = false;
       notifyListeners();
     }
   }
@@ -338,5 +313,17 @@ class GameProvider extends ChangeNotifier {
     }
     
     return possible;
+  }
+
+  Future<void> startNewGame() async {
+    try {
+      generateNewPuzzle();
+    } catch (e) {
+      debugPrint('Error generating puzzle: $e');
+      _board = List.generate(9, (_) => List<int>.filled(9, 0));
+      _solution = List.generate(9, (_) => List<int>.filled(9, 0));
+      _fixedCells = List.generate(9, (_) => List<bool>.filled(9, false));
+    }
+    notifyListeners();
   }
 } 

@@ -42,31 +42,22 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: Consumer<GameProvider>(
-        builder: (context, gameProvider, child) {
-          if (gameProvider.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  'Select Difficulty',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 20),
-                _buildDifficultyButton(context, 'Easy'),
-                _buildDifficultyButton(context, 'Medium'),
-                _buildDifficultyButton(context, 'Hard'),
-                const SizedBox(height: 40),
-                _buildHighScores(context),
-              ],
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Select Difficulty',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-          );
-        },
+            const SizedBox(height: 20),
+            _buildDifficultyButton(context, 'Easy'),
+            _buildDifficultyButton(context, 'Medium'),
+            _buildDifficultyButton(context, 'Hard'),
+            const SizedBox(height: 40),
+            _buildHighScores(context),
+          ],
+        ),
       ),
     );
   }
