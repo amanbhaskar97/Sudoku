@@ -7,6 +7,8 @@ class GameProvider extends ChangeNotifier {
   List<List<int>> _board = List.generate(9, (_) => List<int>.filled(9, 0));
   List<List<int>> _solution = List.generate(9, (_) => List<int>.filled(9, 0));
   List<List<bool>> _fixedCells = List.generate(9, (_) => List<bool>.filled(9, false));
+  List<List<List<bool>>> _notes = List.generate(9, (_) => 
+    List.generate(9, (_) => List<bool>.filled(9, false)));
   String _difficulty = 'Easy';
   int _timeElapsed = 0;
   bool _isGameComplete = false;
@@ -15,9 +17,11 @@ class GameProvider extends ChangeNotifier {
   Map<String, int> _highScores = {'Easy': 9999, 'Medium': 9999, 'Hard': 9999};
   int _maxRecursionDepth = 0;
   bool _isLoading = false;
+  bool _isNotesMode = false;
 
   List<List<int>> get board => _board;
   List<List<bool>> get fixedCells => _fixedCells;
+  List<List<List<bool>>> get notes => _notes;
   String get difficulty => _difficulty;
   int get timeElapsed => _timeElapsed;
   bool get isGameComplete => _isGameComplete;
@@ -25,12 +29,15 @@ class GameProvider extends ChangeNotifier {
   bool get isGameOver => _isGameOver;
   Map<String, int> get highScores => _highScores;
   bool get isLoading => _isLoading;
+  bool get isNotesMode => _isNotesMode;
 
   GameProvider({required SharedPreferences prefs}) : _prefs = prefs {
     _loadHighScores();
     _board = List.generate(9, (_) => List<int>.filled(9, 0));
     _solution = List.generate(9, (_) => List<int>.filled(9, 0));
     _fixedCells = List.generate(9, (_) => List<bool>.filled(9, false));
+    _notes = List.generate(9, (_) => 
+      List.generate(9, (_) => List<bool>.filled(9, false)));
   }
 
   void _loadHighScores() {
@@ -83,22 +90,47 @@ class GameProvider extends ChangeNotifier {
     return true;
   }
 
+  void toggleNotesMode() {
+    _isNotesMode = !_isNotesMode;
+    notifyListeners();
+  }
+
+  void toggleNote(int row, int col, int number) {
+    if (!_fixedCells[row][col] && !_isGameOver) {
+      _notes[row][col][number - 1] = !_notes[row][col][number - 1];
+      notifyListeners();
+    }
+  }
+
+  void clearNotes(int row, int col) {
+    if (!_fixedCells[row][col] && !_isGameOver) {
+      _notes[row][col] = List<bool>.filled(9, false);
+      notifyListeners();
+    }
+  }
+
   void makeMove(int row, int col, int value) {
     if (!_fixedCells[row][col] && !_isGameOver) {
-      _board[row][col] = value;
-      
-      // Check if the move is valid
-      if (value != 0 && !isValidMove(row, col, value)) {
-        _errorCount++;
-        if (_errorCount >= 3) {
-          _isGameOver = true;
-          _isGameComplete = true;
+      if (_isNotesMode) {
+        toggleNote(row, col, value);
+      } else {
+        _board[row][col] = value;
+        // Clear notes when making a move
+        _notes[row][col] = List<bool>.filled(9, false);
+        
+        // Check if the move is valid
+        if (value != 0 && !isValidMove(row, col, value)) {
+          _errorCount++;
+          if (_errorCount >= 3) {
+            _isGameOver = true;
+            _isGameComplete = true;
+          }
         }
-      }
-      
-      notifyListeners();
-      if (!_isGameOver) {
-        _checkCompletion();
+        
+        notifyListeners();
+        if (!_isGameOver) {
+          _checkCompletion();
+        }
       }
     }
   }
@@ -152,11 +184,16 @@ class GameProvider extends ChangeNotifier {
       _isGameComplete = false;
       _errorCount = 0;
       _isGameOver = false;
+      _notes = List.generate(9, (_) => 
+        List.generate(9, (_) => List<bool>.filled(9, false)));
+      _isNotesMode = false;
     } catch (e) {
       debugPrint('Error generating puzzle: $e');
       _board = List.generate(9, (_) => List<int>.filled(9, 0));
       _fixedCells = List.generate(9, (_) => List<bool>.filled(9, false));
       _solution = List.generate(9, (_) => List<int>.filled(9, 0));
+      _notes = List.generate(9, (_) => 
+        List.generate(9, (_) => List<bool>.filled(9, false)));
     } finally {
       _isLoading = false;
       notifyListeners();
