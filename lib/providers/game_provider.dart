@@ -68,6 +68,11 @@ class GameProvider extends ChangeNotifier {
   bool isValidMove(int row, int col, int value) {
     if (value == 0) return true;
     
+    // Check if the move matches the solution
+    if (value != _solution[row][col]) {
+      return false;
+    }
+    
     // Check row
     for (int i = 0; i < 9; i++) {
       if (i != col && _board[row][i] == value) return false;
@@ -138,6 +143,17 @@ class GameProvider extends ChangeNotifier {
   void _checkCompletion() {
     if (_isGameOver) return;
 
+    // First check if all cells are filled
+    for (int i = 0; i < 9; i++) {
+      for (int j = 0; j < 9; j++) {
+        if (_board[i][j] == 0) {
+          _isGameComplete = false;
+          return;
+        }
+      }
+    }
+
+    // Then check if the board matches the solution
     for (int i = 0; i < 9; i++) {
       for (int j = 0; j < 9; j++) {
         if (_board[i][j] != _solution[i][j]) {
@@ -146,6 +162,7 @@ class GameProvider extends ChangeNotifier {
         }
       }
     }
+
     _isGameComplete = true;
     if (_timeElapsed < _highScores[_difficulty]!) {
       _highScores[_difficulty] = _timeElapsed;

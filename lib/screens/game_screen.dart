@@ -288,10 +288,42 @@ class _GameScreenState extends State<GameScreen> {
           itemCount: 10,
           itemBuilder: (context, index) {
             if (index == 9) {
-              return _buildNumberButton(0, 'Clear');
+              return _buildClearButton();
             }
             return _buildNumberButton(index + 1, (index + 1).toString());
           },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildClearButton() {
+    return Consumer<GameProvider>(
+      builder: (context, gameProvider, child) => ElevatedButton(
+        onPressed: () {
+          if (gameProvider.isGameOver) return;
+          
+          if (_selectedRow != null && _selectedCol != null) {
+            setState(() {
+              // Clear the cell value
+              gameProvider.makeMove(_selectedRow!, _selectedCol!, 0);
+              // Clear any notes
+              gameProvider.clearNotes(_selectedRow!, _selectedCol!);
+            });
+          }
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.red[100],
+          foregroundColor: Colors.red[900],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+            side: BorderSide(color: Colors.red[300]!, width: 2),
+          ),
+          elevation: 2,
+        ),
+        child: const Icon(
+          Icons.delete_outline,
+          size: 24,
         ),
       ),
     );
@@ -306,14 +338,7 @@ class _GameScreenState extends State<GameScreen> {
           // Only allow number selection if a cell is already selected
           if (_selectedRow != null && _selectedCol != null) {
             setState(() {
-              if (number == 0) {
-                // Clear the cell and its notes
-                gameProvider.makeMove(_selectedRow!, _selectedCol!, 0);
-                gameProvider.clearNotes(_selectedRow!, _selectedCol!);
-              } else {
-                gameProvider.makeMove(_selectedRow!, _selectedCol!, number);
-              }
-              // Don't deselect the cell after use
+              gameProvider.makeMove(_selectedRow!, _selectedCol!, number);
             });
           }
         },
